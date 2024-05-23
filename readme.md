@@ -1,190 +1,110 @@
 # Network Enumeration Script
 
-Welcome to the Network Enumeration Script! This script is designed to help you perform an initial network enumeration using Nmap and gather vulnerability information. It's especially helpful for beginners learning about network security and penetration testing.
+## Backstory
+
+This script was fully written by ChatGPT 4. What led me to spend several hours developing this script through ChatGPT? 
+
+- **Curiosity**: To prove it can be done.
+- **Situation**: I was down with Covid and had nothing better to do :)
+- **Laziness**: I wanted to know if there are simpler ways to perform network enumeration when you have time for HackTheBox once per year.
+
+## Purpose
+
+This script helps you perform an initial network enumeration using Nmap and gather information about potential vulnerabilities and available exploits. It guides you through each step, making it suitable for beginners in penetration testing.
 
 ## Features
 
-- Perform Nmap scans with various techniques
-- Retrieve and display service descriptions
-- Fetch vulnerabilities from NVD, Vulners, and Shodan
-- Search for exploits using Exploit-DB
-- Save and reuse API keys and the last used target IP
+- **Nmap Scanning**: Perform various Nmap scans to enumerate network hosts and services.
+- **Vulnerability Lookup**: Fetch vulnerability information from NVD, Vulners, and Shodan APIs.
+- **Exploit Search**: Search for potential exploits using Exploit-DB.
+- **Configuration Handling**: Saves API keys and the last scanned IP address for convenience.
 
-## Requirements
+## Prerequisites
 
-- Python 3.x
-- Nmap
-- Searchsploit
+- **Python 3.x**: Ensure you have Python 3.x installed.
+- **Required Libraries**: The script will check and install the following libraries if not already installed:
+  - `nmap`
+  - `requests`
 
 ## Installation
 
-### Python Libraries
+1. **Clone the Repository**:
+    ```bash
+    git clone https://github.com/your-username/aEnum.git
+    cd aEnum
+    ```
 
-Install the required Python libraries using pip:
-```bash
-pip install python-nmap requests
-```
-
-### System Tools
-
-Install Nmap and Searchsploit:
-```bash
-sudo apt update
-sudo apt install nmap exploitdb
-```
+2. **Install Dependencies**:
+    ```bash
+    pip install python-nmap requests
+    sudo apt update
+    sudo apt install nmap exploitdb
+    ```
 
 ## Usage
 
-1. **Run the Script:**
-   ```bash
-   sudo python ./aEnum.py
-   ```
+1. **Run the Script**:
+    ```bash
+    sudo python ./aEnum.py
+    ```
 
-2. **Follow the Prompts:**
-   - You will be asked if you have private API keys for Vulners or Shodan.
-   - Enter the target IP or range.
-   - Choose an Nmap scan method from the provided suggestions.
+2. **Follow the Prompts**:
+    - **API Keys**: Enter your API keys for Vulners and Shodan when prompted. These will be saved for future use.
+    - **IP Address**: Enter the target IP address or range. The script can reuse the last scanned IP.
+    - **Nmap Scan Method**: Choose from the suggested Nmap scan techniques.
 
-### Nmap Scan Techniques
+## Nmap Scan Techniques
 
-The script provides suggestions for various Nmap scan techniques. Below are the explanations:
+### Single Flags
 
-#### Single Flags:
-- `-sn`: Ping scan to discover live hosts without scanning ports.
-- `-p-`: Scan all 65535 ports.
-- `-T4`: Sets aggressive timing for faster scans.
-- `-A`: Enables OS detection, version detection, script scanning, and traceroute.
-- `-v`: Increases verbosity for more detailed output.
-- `-sS`: Performs a stealth SYN scan without completing TCP handshake.
-- `-Pn`: Skips host discovery and treats all hosts as online.
-- `-sU`: Performs a UDP scan.
-- `-sT`: Performs a full TCP connect scan.
-- `-sV`: Detects service versions.
-- `-O`: Enables OS detection.
-- `-sA`: Performs a TCP ACK scan to determine firewall rules.
-- `-f`: Enables packet fragmentation to bypass firewalls and IDS.
+- **`-sn`**: Ping scan to discover live hosts without scanning ports.
+- **`-p-`**: Scan all 65535 ports.
+- **`-T4`**: Sets aggressive timing for faster scans.
+- **`-A`**: Enables OS detection, version detection, script scanning, and traceroute.
+- **`-v`**: Increases verbosity for more detailed output.
+- **`-sS`**: Performs a stealth SYN scan without completing TCP handshake.
+- **`-Pn`**: Skips host discovery and treats all hosts as online.
+- **`-sU`**: Performs a UDP scan.
+- **`-sT`**: Performs a full TCP connect scan.
+- **`-sV`**: Detects service versions.
+- **`-O`**: Enables OS detection.
+- **`-sA`**: Performs a TCP ACK scan to determine firewall rules.
+- **`-f`**: Enables packet fragmentation to bypass firewalls and IDS.
 
-#### Flag Combinations:
-- `-p- -T4 -A -v`: Comprehensive scan: Scans all ports with aggressive timing, enables OS and version detection, and increases verbosity.
-- `-sS -T4 -Pn -p-`: Stealth SYN scan: Stealthily scans all ports with aggressive timing, skips host discovery.
-- `-sU -T4 -Pn -p-`: UDP scan: Scans all UDP ports with aggressive timing, skips host discovery.
-- `-sT -T4 -p-`: TCP connect scan: Full TCP connect scan on all ports with aggressive timing.
-- `-A -T4`: Aggressive scan: Enables OS and version detection, script scanning, and traceroute with aggressive timing.
+### Flag Combinations
 
-## Script Flow
+- **`-p- -T4 -A -v`**: Comprehensive scan: Scans all ports with aggressive timing, enables OS and version detection, and increases verbosity.
+- **`-sS -T4 -Pn -p-`**: Stealth SYN scan: Stealthily scans all ports with aggressive timing, skips host discovery.
+- **`-sU -T4 -Pn -p-`**: UDP scan: Scans all UDP ports with aggressive timing, skips host discovery.
+- **`-sT -T4 -p-`**: TCP connect scan: Full TCP connect scan on all ports with aggressive timing.
+- **`-A -T4`**: Aggressive scan: Enables OS and version detection, script scanning, and traceroute with aggressive timing.
 
-### Introduction
-- The script will print an introduction and provide guidance on what it does.
+## Detailed Steps in the Script
 
-### Configuration File
-- The script checks for and loads a configuration file (`~/.network_enum_config.json`) to store API keys and the last used target IP.
+1. **Check and Install Required Libraries**:
+    - Uses `subprocess` to install missing libraries if they are not already installed.
+    
+2. **Configuration Handling**:
+    - Saves API keys and the last scanned IP to `~/.network_enum_config.json`.
+    
+3. **Nmap Scan Execution**:
+    - Prompts the user to select an Nmap scan method and validates the input.
+    - Performs the scan and identifies open ports.
+    
+4. **Vulnerability Lookup**:
+    - Fetches vulnerabilities from NVD, Vulners, and Shodan APIs.
+    
+5. **Exploit Search**:
+    - Uses `searchsploit` to find potential exploits for the discovered services.
 
-### API Key Prompts
-- The script asks if you have private API keys for Vulners or Shodan. If you provide them, they will be saved in the configuration file for future use.
+## Additional Resources
 
-### Target IP Prompt
-- If a target IP was used in a previous scan, the script asks if you want to reuse it. Otherwise, it prompts for a new target IP.
+- **Nmap Documentation**: https://nmap.org/book/man.html
+- **Vulners API**: https://vulners.com/
+- **Shodan API**: https://developer.shodan.io/api
+- **Exploit-DB**: https://www.exploit-db.com/
+- **HTB Academy**: https://academy.hackthebox.com/
 
-### Nmap Scan Method Selection
-- The script provides suggested Nmap scan methods, with explanations for single flags and useful combinations. You can choose a method or enter a custom one.
+---
 
-### Scan Execution and Results
-- The script executes the chosen Nmap scan method.
-- Displays open ports and their service descriptions.
-- Fetches vulnerabilities from NVD, Vulners, and Shodan.
-- Searches for exploits using Exploit-DB.
-- Provides suggested next steps for further enumeration and exploitation.
-
-## Example Output
-
-```
-Welcome to the Network Enumeration Script!
-This script will help you perform an initial network enumeration using Nmap and gather vulnerability information.
-Please follow the prompts and read the comments for guidance on each step.
-For more information, please refer to the README.md file.
-Let's get started!
-
-Do you have private API keys for Vulners or Shodan? (yes/no): yes
-Enter your Vulners API key (leave blank to skip Vulners lookup): YOUR_VULNERS_API_KEY
-Enter your Shodan API key (leave blank to skip Shodan lookup): YOUR_SHODAN_API_KEY
-Enter the target IP or range (e.g., 192.168.1.1 or 192.168.1.1/24): 192.168.1.1
-
-Suggested Nmap scan techniques for a thorough initial enumeration:
-Single Flags:
-  -sn: Ping scan to discover live hosts without scanning ports.
-  -p-: Scan all 65535 ports.
-  -T4: Sets aggressive timing for faster scans.
-  -A: Enables OS detection, version detection, script scanning, and traceroute.
-  -v: Increases verbosity for more detailed output.
-  -sS: Performs a stealth SYN scan without completing TCP handshake.
-  -Pn: Skips host discovery and treats all hosts as online.
-  -sU: Performs a UDP scan.
-  -sT: Performs a full TCP connect scan.
-  -sV: Detects service versions.
-  -O: Enables OS detection.
-  -sA: Performs a TCP ACK scan to determine firewall rules.
-  -f: Enables packet fragmentation to bypass firewalls and IDS.
-
-Flag Combinations:
-  -p- -T4 -A -v: Comprehensive scan: Scans all ports with aggressive timing, enables OS and version detection, and increases verbosity.
-  -sS -T4 -Pn -p-: Stealth SYN scan: Stealthily scans all ports with aggressive timing, skips host discovery.
-  -sU -T4 -Pn -p-: UDP scan: Scans all UDP ports with aggressive timing, skips host discovery.
-  -sT -T4 -p-: TCP connect scan: Full TCP connect scan on all ports with aggressive timing.
-  -A -T4: Aggressive scan: Enables OS and version detection, script scanning, and traceroute with aggressive timing.
-
-Enter the Nmap scan method to use (e.g., '-p- -T4 -A -v'): -p-
-
-Starting scan with method: -p-
-Total hosts found: 1
-Scanning in progress...
-
-Open ports found: [6379]
-
-I have found 1 open port(s) on 192.168.1.1:
-
-Port 6379 (redis - Redis service) –
-  - No common vulnerabilities identified
-  - API key not provided, skipping Shodan lookup.
-    Suggested next steps:
-    - Research more about 'API key not provided, skipping Shodan lookup.'.
-    - Use tools like Metasploit or search for specific exploits related to 'API key not provided, skipping Shodan lookup.'.
-    - Consider updating or reconfiguring the service to mitigate the vulnerability.
-    - Conduct a thorough security audit of the service.
-    - Review official documentation and security advisories for remediation guidance.
-  - No common vulnerabilities identified
-  - API key not provided, skipping NVD lookup.
-    Suggested next steps:
-    - Research more about 'API key not provided, skipping NVD lookup.'.
-    - Use tools like Metasploit or search for specific exploits related to 'API key not provided, skipping NVD lookup.'.
-    - Consider updating or reconfiguring the service to mitigate the vulnerability.
-    - Conduct a thorough security audit of the service.
-    - Review official documentation and security advisories for remediation guidance.
-
-Exploits found:
------------------------------------------------------------------------------------------------------- ---------------------------------
- Exploit Title                                                                                        |  Path
------------------------------------------------------------------------------------------------------- ---------------------------------
-Redis - Replication Code Execution (Metasploit)                                                       | linux/remote/48272.rb
-Redis 4.x / 5.x - Unauthenticated Code Execution (Metasploit)                                         | linux/remote/47195.rb
-Redis 5.0 - Denial of Service                                                                         | linux/dos/44908.txt
-Redis-cli < 5.0 - Buffer Overflow (PoC)                                                               | linux/local/44904.py
------------------------------------------------------------------------------------------------------- ---------------------------------
-Shellcodes: No Results
-
-Suggested Next Steps for further enumeration and exploitation:
-    - Run more detailed scans on port 6379 using tools like Nessus or OpenVAS.
-    - Search for potential exploits using Exploit-DB, Metasploit, or other exploit databases.
-    - Investigate and analyze the service configuration for weaknesses and misconfigurations.
-```
-
-## Learning Resources
-
-For more information and to further enhance your skills, consider exploring the following resources:
-
-- [Hack The Box Academy - Network Enumeration with Nmap](https://academy.hackthebox.com/course/preview/network-enumeration-with-nmap/introduction-to-nmap)
-- [Nmap Official Documentation](https://nmap.org/book/man.html)
-- [StationX - Nmap Cheat Sheet](https://www.stationx.net/nmap-cheat-sheet/)
-- [Exploit Database - Searchsploit](https://www.exploit-db.com/searchsploit)
-
-Happy scanning! 🌐🔍🛡️
-```
+Happy scanning! 🛡️

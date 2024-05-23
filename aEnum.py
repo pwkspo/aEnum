@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-import os
-import json
-import subprocess
-import sys
+import os  # Provides a way of using operating system dependent functionality like reading or writing to the file system.
+import json  # Used for parsing and creating JSON data, useful for configuration files and API responses.
+import subprocess  # Allows you to spawn new processes, connect to their input/output/error pipes, and obtain their return codes.
+import sys  # Provides access to some variables used or maintained by the interpreter and to functions that interact strongly with the interpreter.
 import nmap  # Python nmap library to run nmap scans and parse results
 import socket  # Standard library for low-level networking interface
 import requests  # Library to make HTTP requests to fetch data from APIs
@@ -19,14 +19,14 @@ import re  # Regular expressions library to validate IP addresses
 # File to store installation and API key information
 config_file = os.path.expanduser("~/.network_enum_config.json")
 
-# Function to load config
+# Function to load config from the configuration file
 def load_config():
     if os.path.exists(config_file):
         with open(config_file, 'r') as f:
             return json.load(f)
     return {"libraries_installed": False, "nvd_api_key": "YOUR_DEFAULT_NVD_API_KEY", "vulners_api_key": "", "shodan_api_key": "", "last_target_ip": ""}
 
-# Function to save config
+# Function to save config to the configuration file
 def save_config(config):
     with open(config_file, 'w') as f:
         json.dump(config, f)
@@ -96,13 +96,17 @@ def get_vulnerabilities_from_vulners(port, api_key):
     try:
         response = requests.get(f"https://vulners.com/api/v3/search/lucene/?query=port:{port}&apiKey={api_key}")
         if response.status_code == 200:
-            vulnerabilities = response.json().get('data', {}).get('search', [])
-            vuln_details = []
-            for vuln in vulnerabilities:
-                cve_id = vuln.get('cvelist', ['Unknown ID'])[0]
-                description = vuln.get('title', 'No description available')
-                vuln_details.append(f"{cve_id}: {description}")
-            return vuln_details if vuln_details else ["No common vulnerabilities identified"]
+            data = response.json().get('data', {}).get('search', {})
+            if isinstance(data, dict):
+                vulnerabilities = data.get('documents', [])
+                vuln_details = []
+                for vuln in vulnerabilities:
+                    cve_id = vuln.get('cvelist', ['Unknown ID'])[0]
+                    description = vuln.get('title', 'No description available')
+                    vuln_details.append(f"{cve_id}: {description}")
+                return vuln_details if vuln_details else ["No common vulnerabilities identified"]
+            else:
+                return ["No common vulnerabilities identified"]
         else:
             return ["No common vulnerabilities identified"]
     except requests.RequestException as e:
@@ -166,18 +170,25 @@ def print_vulnerabilities(port, description, vulnerabilities):
 
 # Function to perform the Nmap scan
 def scan_target(nvd_api_key, vulners_api_key, shodan_api_key):
+    # Check if there is a last target IP stored and ask if it should be reused
     if config.get("last_target_ip"):
-        reuse_ip = input(f"Last target IP was {config['last_target_ip']}. Do you want to scan the same IP? (yes/no): ").strip().lower()
-        if reuse_ip == 'yes':
-            target_ip = config["last_target_ip"]
-        else:
-            target_ip = input("Enter the target IP or range (e.g., 192.168.1.1 or 192.168.1.1/24): ")
+        while True:
+            reuse_ip = input(f"Last target IP was {config['last_target_ip']}. Do you want to scan the same IP? (yes/no): ").strip().lower()
+            if reuse_ip == 'yes':
+                target_ip = config["last_target_ip"]
+                break
+            elif reuse_ip == 'no':
+                target_ip = input("Enter the target IP or range (e.g., 192.168.1.1 or 192.168.1.1/24): ").strip()
+                break
+            else:
+                print("Please enter 'yes' or 'no'.")
     else:
-        target_ip = input("Enter the target IP or range (e.g., 192.168.1.1 or 192.168.1.1/24): ")
+        target_ip = input("Enter the target IP or range (e.g., 192.168.1.1 or 192.168.1.1/24): ").strip()
 
-    if not validate_ip_range(target_ip):
+    # Validate the entered IP address or range
+    while not validate_ip_range(target_ip):
         print("Invalid IP address or range format. Please try again.")
-        return
+        target_ip = input("Enter the target IP or range (e.g., 192.168.1.1 or 192.168.1.1/24): ").strip()
 
     # Save the last target IP
     config["last_target_ip"] = target_ip
@@ -217,7 +228,13 @@ def scan_target(nvd_api_key, vulners_api_key, shodan_api_key):
     for method, description in scan_combinations.items():
         print(f"  {method}: {description}")
 
-    selected_method = input("\nEnter the Nmap scan method to use (e.g., '-p- -T4 -A -v'): ")
+    # Validate the Nmap scan method input
+    while True:
+        selected_method = input("\nEnter the Nmap scan method to use (e.g., '-p- -T4 -A -v'): ").strip()
+        if selected_method in scan_combinations or all(flag in single_flags for flag in selected_method.split()):
+            break
+        else:
+            print("Invalid scan method. Please select from the suggested methods or use valid single flags.")
 
     nm = nmap.PortScanner()
     open_ports = []
@@ -250,9 +267,14 @@ def scan_target(nvd_api_key, vulners_api_key, shodan_api_key):
                 print("Host seems down. Retrying with -Pn to skip host discovery...")
                 use_pn = True
             else:
-                retry = input("Scan failed. Would you like to try a different scan method? (yes/no): ")
-                if retry.lower() == 'yes':
-                    selected_method = input("Enter the Nmap scan method to use (e.g., '-p- -T4 -A -v'): ")
+                retry = input("Scan failed. Would you like to try a different scan method? (yes/no): ").strip().lower()
+                if retry == 'yes':
+                    while True:
+                        selected_method = input("Enter the Nmap scan method to use (e.g., '-p- -T4 -A -v'): ").strip()
+                        if selected_method in scan_combinations or all(flag in single_flags for flag in selected_method.split()):
+                            break
+                        else:
+                            print("Invalid scan method. Please select from the suggested methods or use valid single flags.")
                 else:
                     return
 
@@ -296,8 +318,10 @@ if __name__ == "__main__":
             print("Please enter 'yes' or 'no'.")
 
     if use_private_keys == 'yes':
-        vulners_api_key = input("Enter your Vulners API key (leave blank to skip Vulners lookup): ").strip()
-        shodan_api_key = input("Enter your Shodan API key (leave blank to skip Shodan lookup): ").strip()
+        if not vulners_api_key:
+            vulners_api_key = input("Enter your Vulners API key (leave blank to skip Vulners lookup): ").strip()
+        if not shodan_api_key:
+            shodan_api_key = input("Enter your Shodan API key (leave blank to skip Shodan lookup): ").strip()
 
     # Save keys back to the config file
     config["nvd_api_key"] = nvd_api_key
