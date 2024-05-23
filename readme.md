@@ -7,6 +7,7 @@ This script was fully written by ChatGPT 4. What led me to spend several hours d
 - **Curiosity**: To prove it can be done.
 - **Situation**: I was down with Covid and had nothing better to do :)
 - **Laziness**: I wanted to know if there are simpler ways to perform network enumeration when you have time for HackTheBox once per year.
+- **Noob**: I am both penetration testing and coding noob.
 
 ## Purpose
 
